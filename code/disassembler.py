@@ -61,7 +61,7 @@ class Disassembler:
             if self.hex:
                 data = self.program.buf[pos : pos + length]
                 hex = self.dump_hex(pos, data)
-                line = self.ljust(line, 50) + hex
+                line = self.ljust(line, 40) + hex
 
             lines.append(line)
 
