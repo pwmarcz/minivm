@@ -20,8 +20,6 @@ TODO header
 | `OP_MOD`         | 25   |                                   | `a % b`                                                      |
 | **Logic**        |      |                                   |                                                              |
 | `OP_NOT`         | 28   |                                   | `!a`                                                         |
-| `OP_AND`         | 29   |                                   | `a && b`                                                     |
-| `OP_OR`          | 2A   |                                   | `a || b`                                                     |
 | `CMP_EQ`         | 30   |                                   | `a == b`                                                     |
 | `CMP_NE`         | 31   |                                   | `a != b`                                                     |
 | `CMP_LT`         | 32   |                                   | `a < b`                                                      |

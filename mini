@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 import sys
+
 import minivm.assemble
 import minivm.disassemble
+import minivm.run
 
 
 def print_usage(prog):
@@ -33,6 +35,8 @@ def main():
         minivm.assemble.main()
     elif cmd in ['disassemble', 'dis']:
         minivm.disassemble.main()
+    elif cmd in ['run']:
+        minivm.run.main()
     else:
         print_usage(prog)
         sys.exit(1)

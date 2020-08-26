@@ -20,8 +20,6 @@ class Op(Enum):
     OP_MOD = 0x25
 
     OP_NOT = 0x28
-    OP_AND = 0x29
-    OP_OR = 0x2A
 
     CMP_EQ = 0x30
     CMP_NE = 0x31
