@@ -3,7 +3,7 @@ import unittest
 
 
 class Op(Enum):
-    FUNC = 0x00
+    FUNC = 0x01
 
     CONST_NULL = 0x10
     CONST_FALSE = 0x11
@@ -60,7 +60,6 @@ PARAMS = {
     Op.STORE_LOCAL: [Param.UINT],
     Op.JUMP: [Param.INT],
     Op.CALL: [Param.STRING, Param.UINT],
-    Op.CALL_NATIVE: [Param.STRING, Param.UINT],
 }
 
 

@@ -160,7 +160,7 @@ L2:
     JUMP L2  # -3, 000D
     JUMP -1  # -1, 0011 (unknown)
 L1:
-    CALL_NATIVE "print" 1
+    CALL "print" 1
     RET
 '''
         asm = Assembler(code)
@@ -173,7 +173,7 @@ L1:
             Op.JUMP.value, 6,
             Op.JUMP.value, 0x100-3,
             Op.JUMP.value, 0x100-1,
-            Op.CALL_NATIVE.value, 5, *b'print', 1,
+            Op.CALL.value, 5, *b'print', 1,
             Op.RET.value,
         ])
 
