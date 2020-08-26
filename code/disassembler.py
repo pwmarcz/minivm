@@ -1,5 +1,8 @@
 import re
 import unittest
+import argparse
+import sys
+from pathlib import Path
 
 from .program import Op, PARAMS, Param, Program
 from .tokens import escape_string
@@ -122,7 +125,7 @@ class Disassembler:
 
 class DisassemblerTest(unittest.TestCase):
     def test(self):
-        data = [
+        bytecode = [
             Op.FUNC.value, 5, *b'hello', 0, 2,
             Op.CONST_INT.value, 2,
             Op.CONST_INT.value, 3,
@@ -133,7 +136,8 @@ class DisassemblerTest(unittest.TestCase):
             Op.CALL_NATIVE.value, 5, *b'print', 1,
             Op.RET.value,
         ]
-        program = Program(data)
+        Path('program.bc').write_bytes(bytes(bytecode))
+        program = Program(bytecode)
         dis = Disassembler(program, hex=False, color=False).dump()
         self.assertEqual(dis, '''\
 
@@ -152,18 +156,36 @@ L1:
 
 
 def main():
-    code = b""
-    code += b"\x00\x05hello\x00\x02"
-    code += b"\x13\x02"
-    code += b"\x13\x03"
-    code += b"\x21"
-    code += b"\x51\xFD"
-    code += b"\x51\xFF"
-    code += b"\x51\x02"
-    code += b"\x54\x05prin\x01\x01"
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'input_file', metavar='INPUT_FILE',
+        help='input file, or - for stdin',
+    )
+    parser.add_argument(
+        'output_file', metavar='OUTPUT_FILE', nargs='?',
+        default='-',
+        help='output file, or - for stdout',
+    )
+    parser.add_argument(
+        '--hex', action='store_true',
+        help='annotate with addresses',
+    )
 
-    program = Program(code)
-    print(Disassembler(program).dump())
+    args = parser.parse_args()
+
+    if args.input_file == '-':
+        bytecode = sys.stdin.buffer.read()
+    else:
+        bytecode = Path(args.input_file).read_bytes()
+
+    color = sys.stdout.isatty() and args.output_file == '-'
+    program = Program(bytecode)
+    output = Disassembler(program, color=color, hex=args.hex).dump()
+
+    if args.output_file == '-':
+        sys.stdout.write(output)
+    else:
+        Path(args.output_file).write_text(output)
 
 
 if __name__ == '__main__':

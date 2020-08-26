@@ -1,4 +1,7 @@
 import unittest
+import argparse
+from pathlib import Path
+import sys
 
 from .program import Program, Param, PARAMS, Op
 from .tokens import ParseError, Scanner, TIdent, TLabel, TString, TInteger
@@ -157,11 +160,30 @@ L1:
 
 
 def main():
-    from .disassembler import Disassembler
-    asm = Assembler("X: jump X")
-    data = asm.assemble()
-    print(Disassembler(Program(data)).dump())
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'input_file', metavar='INPUT_FILE',
+        help='input file, or - for stdin',
+    )
+    parser.add_argument(
+        'output_file', metavar='OUTPUT_FILE',
+        help='output file, or - for stdout',
+    )
 
+    args = parser.parse_args()
+
+    if args.input_file == '-':
+        code = sys.stdin.read()
+    else:
+        code = Path(args.input_file).read_text()
+
+    asm = Assembler(code)
+    bytecode = asm.assemble()
+
+    if args.output_file == '-':
+        sys.stdout.buffer.write(bytecode)
+    else:
+        Path(args.output_file).write_bytes(bytecode)
 
 if __name__ == '__main__':
     main()

@@ -75,8 +75,8 @@ class ProgramError(Exception):
 
 
 class Program:
-    def __init__(self, data):
-        self.buf = bytearray(data)
+    def __init__(self, bytecode):
+        self.buf = bytes(bytecode)
         self.pos = 0
 
     def read_instr(self):
