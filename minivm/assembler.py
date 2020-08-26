@@ -18,7 +18,7 @@ class Assembler:
     def parse_param(self, token, param):
         if param == Param.STRING:
             if not isinstance(token, TString):
-                raise ParseError(token.lineno, token.col, f"expected string, got {token:r}")
+                raise ParseError(token.lineno, token.col, "expected a string")
             if len(token.value) > 256:
                 raise ParseError(token.lineno, token.col, "string literal too long")
 
@@ -26,7 +26,7 @@ class Assembler:
             return bytes([len(token_bytes)]) + token_bytes
 
         if not isinstance(token, TInteger):
-            raise ParseError(token.lineno, token.col, f"expected number, got {token}")
+            raise ParseError(token.lineno, token.col, "expected a number")
 
         min_val, max_val = {
             Param.UINT: (0, 0xFF),

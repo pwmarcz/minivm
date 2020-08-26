@@ -1,7 +1,7 @@
 import string
 import unittest
-import dataclasses
 import re
+from collections import namedtuple
 
 
 STRING_ESCAPES = {
@@ -34,42 +34,10 @@ def escape_string(s):
     return result
 
 
-@dataclasses.dataclass
-class Token:
-    lineno: int
-    col: int
-
-
-@dataclasses.dataclass
-class TLabel(Token):
-    value: str
-
-    def __str__(self):
-        return self.value + ':'
-
-
-@dataclasses.dataclass
-class TIdent(Token):
-    value: str
-
-    def __str__(self):
-        return self.value
-
-
-@dataclasses.dataclass
-class TInteger(Token):
-    value: int
-
-    def __str__(self):
-        return str(self.value)
-
-
-@dataclasses.dataclass
-class TString(Token):
-    value: str
-
-    def __str__(self):
-        return escape_string(self.value)
+TLabel = namedtuple('TLabel', ['lineno', 'col', 'value'])
+TIdent = namedtuple('TIdent', ['lineno', 'col', 'value'])
+TInteger = namedtuple('TInteger', ['lineno', 'col', 'value'])
+TString = namedtuple('TString', ['lineno', 'col', 'value'])
 
 
 class ParseError(Exception):
