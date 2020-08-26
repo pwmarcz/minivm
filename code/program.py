@@ -42,7 +42,6 @@ class Op(Enum):
     JUMP = 0x51
     RET = 0x52
     CALL = 0x53
-    CALL_NATIVE = 0x54
 
 
 class Param(Enum):
