@@ -31,7 +31,7 @@ TODO header
 | **Stack/vars**   |      |                                   |                                                              |
 | `DUP`            | 40   |                                   | Duplicate top value on stack                                 |
 | `DROP`           | 41   |                                   | Remove top value from stack                                  |
-| `LOAD_LOCAL`     | 4A   | `<N:byte>`                        | Push Nth local variable (with a given number) to stack       |
+| `LOAD_LOCAL`     | 4A   | `<N:byte>`                        | Push Nth local variable to stack                             |
 | `STORE_LOCAL`    | 4B   | `<N:byte>`                        | Take a value from stack and store it in Nth local variable   |
 | **Control flow** |      |                                   |                                                              |
 | `CHECK`          | 50   |                                   | Take a value from stack, skip next instruction if false/null |
@@ -44,7 +44,7 @@ The **string values** are ASCII strings, encoded with length as their first byte
 * `FUNC "main" 0 2` -> `01 04 'm' 'a' 'i' 'n' 00 02`
 * `CONST_STRING "hello"` -> `15 05 'h' 'e' 'l' 'l' 'o'`
 
-The **integer values** for `CONST_INT` and `CONST_INT_BIG` are signed 8-bit and 32-bit integers. Note that even though `CONST_INT` carries an 8-bit value, intenally the VM will operate on 32-bit values. The encoding for 32-bit integers is little-endian.
+The **integer values** for `CONST_INT` and `CONST_INT_BIG` are signed 8-bit and 32-bit integers. The encoding for 32-bit integers is little-endian.
 
 Examples:
 * `CONST_INT 42` = `CONST_INT $2A` -> `13 2A`
