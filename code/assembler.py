@@ -3,7 +3,7 @@ import argparse
 from pathlib import Path
 import sys
 
-from .program import Program, Param, PARAMS, Op
+from .program import Param, PARAMS, Op
 from .tokens import ParseError, Scanner, TIdent, TLabel, TString, TInteger
 
 
@@ -13,6 +13,7 @@ class Assembler:
         self.data = bytearray()
         self.targets = {}
         self.sources = {}
+        self.errors = []
 
     def parse_param(self, token, param):
         if param == Param.STRING:
@@ -104,11 +105,15 @@ class Assembler:
     def update_locations(self):
         for source, (token, label) in self.sources.items():
             if label not in self.targets:
-                raise ParseError(token.lineno, token.col, f'unknown label: {label}')
+                self.errors.append(
+                    ParseError(token.lineno, token.col, f'unknown label: {label}'))
+                continue
+
             target = self.targets[label]
             delta = target - source + 1
             if not -128 <= delta <= 127:
-                raise ParseError(token.lineno, token.col, f'jump is too far: {delta}')
+                self.errors.append(
+                    ParseError(token.lineno, token.col, f'jump is too far: {delta}'))
             if delta < 0:
                 self.data[source] = delta + 0x100
             else:
@@ -118,14 +123,28 @@ class Assembler:
         for lineno, line in enumerate(self.lines):
             # tokenize
             scanner = Scanner(line, lineno)
-            tokens = list(scanner.iter())
 
-            compiled = self.parse_line(tokens, len(self.data))
-            self.data.extend(compiled)
+            try:
+                tokens = list(scanner.iter())
+                compiled = self.parse_line(tokens, len(self.data))
+            except ParseError as e:
+                self.errors.append(e)
+            else:
+                self.data.extend(compiled)
 
         self.update_locations()
 
+        if self.errors:
+            return None
+
         return self.data
+
+    def describe_errors(self):
+        prefix = ' ' * 2
+        for error in self.errors:
+            yield f'{error.lineno}:{error.col}: error: {error.message}'
+            yield prefix + self.lines[error.lineno]
+            yield prefix + ' ' * error.col + '^'
 
 
 class AssemblerTest(unittest.TestCase):
@@ -180,10 +199,16 @@ def main():
     asm = Assembler(code)
     bytecode = asm.assemble()
 
+    if bytecode is None:
+        for error_line in asm.describe_errors():
+            print(error_line, file=sys.stderr)
+        sys.exit(1)
+
     if args.output_file == '-':
         sys.stdout.buffer.write(bytecode)
     else:
         Path(args.output_file).write_bytes(bytecode)
+
 
 if __name__ == '__main__':
     main()
