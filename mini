@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+
+import sys
+import minivm.assembler
+import minivm.disassembler
+
+
+def print_usage(prog):
+    print(f"""\
+Commands:
+
+  {prog} assemble INPUT_FILE OUTPUT_FILE
+    (alias: {prog} as)
+
+  {prog} disassemble INPUT_FILE [OUTPUT_FILE]
+    (alias: {prog} dis)
+
+  {prog} run INPUT_FILE
+""")
+
+
+def main():
+    prog = sys.argv[0]
+    if len(sys.argv) < 2:
+        print_usage(prog)
+        sys.exit(1)
+
+    cmd = sys.argv[1]
+    sys.argv[0] = sys.argv[0] + ' ' + sys.argv[1]
+    sys.argv.pop(1)
+
+    if cmd in ['assemble', 'as']:
+        minivm.assembler.main()
+    elif cmd in ['disassemble', 'dis']:
+        minivm.disassembler.main()
+    else:
+        print_usage(prog)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
