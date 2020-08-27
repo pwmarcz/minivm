@@ -33,5 +33,5 @@ LOOP:
 
 END:
     # Return sum
-    LOAD_LOCAL 1
+    LOAD_LOCAL 0
     RET

@@ -131,7 +131,7 @@ Example program (`examples/sum.asm`):
 
     END:
         # Return sum
-        LOAD_LOCAL 1
+        LOAD_LOCAL 0
         RET
 
 ## Built-in functions
