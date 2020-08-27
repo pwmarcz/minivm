@@ -102,6 +102,12 @@ class Program:
                 assert False, param
         return op, args
 
+    def read_from(self, pos):
+        self.pos = pos
+        op, args = self.read_instr()
+        length = self.pos - pos
+        return length, op, args
+
     def read_uint(self):
         if self.pos >= len(self.buf):
             raise ProgramError(self.pos, "unexpected end of input")

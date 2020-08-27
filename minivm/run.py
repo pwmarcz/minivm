@@ -5,6 +5,7 @@ from collections import namedtuple
 
 from .program import Program, Op, HEADER
 from .assemble import run_assembler
+from .disassemble import Disassembler
 
 Function = namedtuple('Function', ['name', 'entry', 'n_params', 'n_locals'])
 
@@ -16,6 +17,7 @@ class MachineError(Exception):
 class Frame:
     def __init__(self, name, ip, args, n_locals):
         self.name = name
+        self.prev_ip = ip
         self.ip = ip
         self.stack = []
         self.locals = list(args)
@@ -68,10 +70,9 @@ class Machine:
 
     def step(self):
         frame = self.frames[-1]
-        prev_ip = frame.ip
-        self.program.pos = frame.ip
-        op, args = self.program.read_instr()
-        frame.ip = self.program.pos
+        length, op, args = self.program.read_from(frame.ip)
+        frame.prev_ip = frame.ip
+        frame.ip += length
 
         if self.skip:
             self.skip = False
@@ -143,7 +144,7 @@ class Machine:
                 self.skip = True
 
         elif op == op.JUMP:
-            frame.ip = prev_ip + args[0]
+            frame.ip = frame.prev_ip + args[0]
 
         elif op == op.CALL:
             name, n_args = args
@@ -254,6 +255,15 @@ class Machine:
         result.reverse()
         return result
 
+    def traceback(self):
+        dis = Disassembler(self.program, color=True, hex=True)
+        for frame in self.frames:
+            # TODO colors
+            yield f'{frame.prev_ip:04X}: ({frame.name})'
+            length, op, args = self.program.read_from(frame.prev_ip)
+            dump = dis.dump_line(frame.prev_ip, length, op, args)
+            yield '  ' + dump
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -277,8 +287,15 @@ def main():
     program = Program(bytecode)
     machine = Machine(program)
 
-    result = machine.run()
-    print(f'result: {result!r}')
+    try:
+        result = machine.run()
+        print(f'result: {result!r}')
+    except MachineError as e:
+        print('Traceback (most recent frame last):', file=sys.stderr)
+        for error_line in machine.traceback():
+            print(error_line, file=sys.stderr)
+        print(f'error: {e}', file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == '__main__':

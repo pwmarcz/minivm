@@ -15,6 +15,7 @@ class Disassembler:
         self.color = color
 
         self.targets = {}
+        self.collect_labels()
 
     def comment(self, s):
         if self.color:
@@ -37,8 +38,6 @@ class Disassembler:
         return s
 
     def dump(self):
-        self.collect_labels()
-
         lines = []
         for pos, length, op, args in self.program.iter():
             if op == Op.FUNC:
@@ -47,28 +46,31 @@ class Disassembler:
             if pos in self.targets:
                 lines.append(self.label(self.targets[pos]) + ":")
 
-            if op == Op.FUNC:
-                line = self.dump_instr(op, args)
-            elif op == Op.JUMP:
-                target = pos + args[0]
-                if target in self.targets:
-                    label = self.targets[target]
-                    line = f"    JUMP {self.label(label)}  "
-                    line += self.comment(f"# {args[0]:+}, {target:04X}")
-                else:
-                    line = f"    JUMP {args[0]}  "
-                    line += self.comment(f"# {args[0]:+}, {target:04X} (unknown)")
-            else:
-                line = "    " + self.dump_instr(op, args)
-
-            if self.hex:
-                data = self.program.buf[pos : pos + length]
-                hex = self.dump_hex(pos, data)
-                line = self.ljust(line, 40) + hex
-
-            lines.append(line)
+            lines.append(self.dump_line(pos, length, op, args))
 
         return "\n".join(lines) + "\n"
+
+    def dump_line(self, pos, length, op, args):
+        if op == Op.FUNC:
+            line = self.dump_instr(op, args)
+        elif op == Op.JUMP:
+            target = pos + args[0]
+            if target in self.targets:
+                label = self.targets[target]
+                line = f"    JUMP {self.label(label)}  "
+                line += self.comment(f"# {args[0]:+}, {target:04X}")
+            else:
+                line = f"    JUMP {args[0]}  "
+                line += self.comment(f"# {args[0]:+}, {target:04X} (unknown)")
+        else:
+            line = "    " + self.dump_instr(op, args)
+
+        if self.hex:
+            data = self.program.buf[pos : pos + length]
+            hex = self.dump_hex(pos, data)
+            line = self.ljust(line, 40) + hex
+
+        return line
 
     def ljust(self, line, width):
         if self.color:
