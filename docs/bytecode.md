@@ -1,6 +1,8 @@
 # Bytecode format
 
-TODO header
+The file starts with an 8-byte header:
+
+    4D 49 4E 49 56 4D 00 00 = MINIVM\0\0
 
 | Operation        | Code | Parameters                        | Effect                                                       |
 | ---------------- | ---- | --------------------------------- | ------------------------------------------------------------ |

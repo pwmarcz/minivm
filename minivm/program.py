@@ -2,6 +2,9 @@ from enum import Enum
 import unittest
 
 
+HEADER = b'MINIVM\0\0'
+
+
 class Op(Enum):
     FUNC = 0x01
 
@@ -73,7 +76,9 @@ class ProgramError(Exception):
 class Program:
     def __init__(self, bytecode):
         self.buf = bytes(bytecode)
-        self.pos = 0
+        if not self.buf.startswith(HEADER):
+            raise ProgramError(0, "Program doesn't start with a header")
+        self.pos = len(HEADER)
 
     def read_instr(self):
         op_code = self.read_uint()
@@ -134,7 +139,7 @@ class Program:
         return result
 
     def iter(self):
-        self.pos = 0
+        self.pos = len(HEADER)
         while self.pos < len(self.buf):
             pos = self.pos
             op, args = self.read_instr()
@@ -145,6 +150,7 @@ class Program:
 class ProgramTest(unittest.TestCase):
     def test_instructions(self):
         data = [
+            *HEADER,
             Op.FUNC.value, 3, *b'foo', 4, 5,
             Op.CONST_INT.value, 0xFF,
             Op.CONST_INT_BIG.value, 0xFF, 0x01, 0x00, 0x00,
@@ -152,8 +158,8 @@ class ProgramTest(unittest.TestCase):
         ]
         program = Program(data)
         self.assertListEqual(list(program.iter()), [
-            (0, 7, Op.FUNC, ['foo', 4, 5]),
-            (7, 2, Op.CONST_INT, [-1]),
-            (9, 5, Op.CONST_INT_BIG, [0x1FF]),
-            (14, 6, Op.CALL, ['bar', 5]),
+            (8, 7, Op.FUNC, ['foo', 4, 5]),
+            (15, 2, Op.CONST_INT, [-1]),
+            (17, 5, Op.CONST_INT_BIG, [0x1FF]),
+            (22, 6, Op.CALL, ['bar', 5]),
         ])

@@ -3,14 +3,14 @@ import argparse
 from pathlib import Path
 import sys
 
-from .program import Param, PARAMS, Op
+from .program import Param, PARAMS, Op, HEADER
 from .tokens import ParseError, Scanner, TIdent, TLabel, TString, TInteger
 
 
 class Assembler:
     def __init__(self, code):
         self.lines = code.splitlines()
-        self.data = bytearray()
+        self.data = bytearray(HEADER)
         self.targets = {}
         self.sources = {}
         self.errors = []
@@ -166,6 +166,7 @@ L1:
         asm = Assembler(code)
         data = asm.assemble()
         self.assertListEqual(list(data), [
+            *HEADER,
             Op.FUNC.value, 5, *b'hello', 0, 2,
             Op.CONST_INT.value, 2,
             Op.CONST_INT.value, 3,

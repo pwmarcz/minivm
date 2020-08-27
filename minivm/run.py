@@ -1,10 +1,9 @@
-
 import argparse
 from pathlib import Path
 import sys
 from collections import namedtuple
 
-from .program import Program, Op
+from .program import Program, Op, HEADER
 from .assemble import Assembler
 
 Function = namedtuple('Function', ['name', 'entry', 'n_params', 'n_locals'])
@@ -266,17 +265,20 @@ def main():
     args = parser.parse_args()
 
     if args.input_file == '-':
-        code = sys.stdin.read()
+        data = sys.stdin.buffer.read()
     else:
-        code = Path(args.input_file).read_text()
+        data = Path(args.input_file).read_bytes()
 
-    asm = Assembler(code)
-    bytecode = asm.assemble()
+    if data.startswith(HEADER):
+        bytecode = data
+    else:
+        asm = Assembler(data.decode('ascii'))
+        bytecode = asm.assemble()
 
-    if bytecode is None:
-        for error_line in asm.describe_errors():
-            print(error_line, file=sys.stderr)
-        sys.exit(1)
+        if bytecode is None:
+            for error_line in asm.describe_errors():
+                print(error_line, file=sys.stderr)
+            sys.exit(1)
 
     program = Program(bytecode)
     machine = Machine(program)

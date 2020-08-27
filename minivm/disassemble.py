@@ -4,7 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .program import Op, PARAMS, Param, Program
+from .program import Op, PARAMS, Param, Program, HEADER
 from .tokens import escape_string
 
 
@@ -124,8 +124,9 @@ class Disassembler:
 
 
 class DisassemblerTest(unittest.TestCase):
-    def test(self):
+    def test_disassemble(self):
         bytecode = [
+            *HEADER,
             Op.FUNC.value, 5, *b'hello', 0, 2,
             Op.CONST_INT.value, 2,
             Op.CONST_INT.value, 3,
@@ -146,9 +147,9 @@ FUNC "hello" 0 2
     CONST_INT 3
 L2:
     OP_ADD
-    JUMP L1  # +6, 0014
-    JUMP L2  # -3, 000D
-    JUMP -1  # -1, 0011 (unknown)
+    JUMP L1  # +6, 001C
+    JUMP L2  # -3, 0015
+    JUMP -1  # -1, 0019 (unknown)
 L1:
     CALL "print" 1
     RET
