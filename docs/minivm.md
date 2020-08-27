@@ -39,7 +39,7 @@ To exit a function, use `RET`. It will take the result from the local stack, rem
 
 At the beginning, the function `main` is called, with no arguments.
 
-The following program:
+The following program (`examples/locals.asm`):
 
     FUNC "main" 0 1
         # Store "local" in local 0
@@ -94,7 +94,7 @@ For control flow, you can use:
 
 You can add label to any line by prepending it with label name and colon at the beginning.
 
-Example program:
+Example program (`examples/sum.asm`):
 
     FUNC "main" 0 2
         # Compute a sum from 0 to 10:
@@ -132,7 +132,7 @@ Example program:
     END:
         # Return sum
         LOAD_LOCAL 1
-        return
+        RET
 
 ## Built-in functions
 
@@ -173,7 +173,7 @@ See also "Bytecode format" below, for how the operations are encoded.
 * `CONST_TRUE`: Push `true` to stack.
 * `CONST_INT n`, `CONST_INT_BIG n`
 
-  Push an integer N to stack. The value for `CONST_INT` must be in the range `-128..127`, and the value for `CONST_INT_BIG` must be between `-2^31..2^31-`.
+  Push an integer N to stack. The value for `CONST_INT` must be in the range `-128..127`, and the value for `CONST_INT_BIG` must be between `-2^31..2^31-1`.
 
 * `CONST_STRING "string"`
 
@@ -246,8 +246,8 @@ The file starts with an 8-byte header:
 | `CONST_NULL`     | 10   |                                   | Push `null` to stack                                         |
 | `CONST_FALSE`    | 11   |                                   | Push `false` to stack                                        |
 | `CONST_TRUE`     | 12   |                                   | Push `true` to stack                                         |
-| `CONST_INT`      | 13   | `<byte>` (signed)                 | Push an integer to stack (-128..127)                         |
-| `CONST_INT_BIG`  | 14   | `<byte>` x 4 (signed)             | Push an integer to stack (-2^31..2**31-1)                    |
+| `CONST_INT`      | 13   | `<byte>` (signed)                 | Push an integer to stack (`-128..127`)                       |
+| `CONST_INT_BIG`  | 14   | `<byte>` x 4 (signed)             | Push an integer to stack (`-2^31..2^31-1`)                   |
 | **Arithmetic**   |      |                                   |                                                              |
 | `OP_NEG`         | 20   |                                   | `-a`                                                         |
 | `OP_ADD`         | 21   |                                   | `a + b`                                                      |
