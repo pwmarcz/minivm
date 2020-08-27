@@ -4,7 +4,7 @@ import sys
 from collections import namedtuple
 
 from .program import Program, Op, HEADER
-from .assemble import Assembler
+from .assemble import run_assembler
 
 Function = namedtuple('Function', ['name', 'entry', 'n_params', 'n_locals'])
 
@@ -272,13 +272,7 @@ def main():
     if data.startswith(HEADER):
         bytecode = data
     else:
-        asm = Assembler(data.decode('ascii'))
-        bytecode = asm.assemble()
-
-        if bytecode is None:
-            for error_line in asm.describe_errors():
-                print(error_line, file=sys.stderr)
-            sys.exit(1)
+        bytecode = run_assembler(data.decode('ascii'))
 
     program = Program(bytecode)
     machine = Machine(program)

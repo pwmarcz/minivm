@@ -179,6 +179,17 @@ L1:
         ])
 
 
+def run_assembler(code):
+    asm = Assembler(code)
+    bytecode = asm.assemble()
+
+    if bytecode is None:
+        for error_line in asm.describe_errors():
+            print(error_line, file=sys.stderr)
+        sys.exit(1)
+    return bytecode
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -197,13 +208,7 @@ def main():
     else:
         code = Path(args.input_file).read_text()
 
-    asm = Assembler(code)
-    bytecode = asm.assemble()
-
-    if bytecode is None:
-        for error_line in asm.describe_errors():
-            print(error_line, file=sys.stderr)
-        sys.exit(1)
+    bytecode = run_assembler(code)
 
     if args.output_file == '-':
         sys.stdout.buffer.write(bytecode)
