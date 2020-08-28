@@ -265,6 +265,14 @@ See also "Bytecode format" below, for how the operations are encoded.
 
 * `DROP`: Remove top value from stack.
 
+* `LOAD_GLOBAL n`
+
+  Push a global variable number `n` to stack. There are 256 global variables, numbered 0 to 255.
+
+* `STORE_GLOBAL n`
+
+  Remove a value from stack, and store it in global variable number `n`. There are 256 global variables, numbered 0 to 255.
+
 * `LOAD_LOCAL n`
 
   Push a local variable `n` to stack.
@@ -318,6 +326,8 @@ The operations are encoded as follows:
 | **Stack/vars**   |      |                                   |                                                                |
 | `DUP`            | 40   |                                   | Duplicate top value on stack                                   |
 | `DROP`           | 41   |                                   | Remove top value from stack                                    |
+| `LOAD_GLOBAL`    | 48   | `<n:byte>`                        | Push `n`-th global variable to stack                           |
+| `STORE_GLOBAL`   | 49   | `<n:byte>`                        | Take a value from stack and store it in `n`-th global variable |
 | `LOAD_LOCAL`     | 4A   | `<n:byte>`                        | Push `n`-th local variable to stack                            |
 | `STORE_LOCAL`    | 4B   | `<n:byte>`                        | Take a value from stack and store it in `n`-th local variable  |
 | **Control flow** |      |                                   |                                                                |

@@ -34,8 +34,8 @@ class Op(Enum):
     DUP = 0x40
     DROP = 0x41
 
-    # LOAD_GLOBAL = 0x48
-    # STORE_GLOBAL = 0x49
+    LOAD_GLOBAL = 0x48
+    STORE_GLOBAL = 0x49
     LOAD_LOCAL = 0x4A
     STORE_LOCAL = 0x4B
 
@@ -57,6 +57,8 @@ PARAMS = {
     Op.CONST_INT: [Param.INT],
     Op.CONST_INT_BIG: [Param.INT_BIG],
     Op.CONST_STRING: [Param.STRING],
+    Op.LOAD_GLOBAL: [Param.UINT],
+    Op.STORE_GLOBAL: [Param.UINT],
     Op.LOAD_LOCAL: [Param.UINT],
     Op.STORE_LOCAL: [Param.UINT],
     Op.JUMP: [Param.INT],

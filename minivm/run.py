@@ -42,6 +42,7 @@ class Machine:
                 entry = pos + length
                 self.functions[name] = Function(name, entry, n_params, n_locals)
         self.frames = []
+        self.globals = [None] * 256
         self.result = None
         self.skip = False
 
@@ -125,6 +126,14 @@ class Machine:
 
         elif op == op.DROP:
             self.pop()
+
+        elif op == op.LOAD_GLOBAL:
+            n = args[0]
+            self.push(self.globals[n])
+
+        elif op == op.STORE_GLOBAL:
+            n = args[0]
+            self.globals[n] = self.pop()
 
         elif op == op.LOAD_LOCAL:
             n = args[0]
