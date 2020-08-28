@@ -1,5 +1,17 @@
 # MiniVM reference manual
 
+- [MiniVM reference manual](#minivm-reference-manual)
+  - [Summary](#summary)
+  - [Commands](#commands)
+  - [MiniVM assembly syntax](#minivm-assembly-syntax)
+  - [Data types](#data-types)
+  - [Stack](#stack)
+  - [Functions and frames](#functions-and-frames)
+  - [Control flow](#control-flow)
+  - [Built-in functions](#built-in-functions)
+  - [All operations](#all-operations)
+  - [Bytecode format](#bytecode-format)
+
 ## Summary
 
 * Assembly compiled to bytecode
@@ -8,7 +20,45 @@
 * Frame contains local variables; the arguments are passed as local variables
 * For control flow, there is `CHECK` (skip next instruction if false), and `JUMP` (unconditional goto)
 
+## Commands
+
+* `mini run`: run a program (from source, or from bytecode):
+
+      ./mini run program.asm
+      ./mini run program.bc
+
+* `mini assemble` (or `as`): compile a program to bytecode:
+
+      mini as program.asm program.bc
+
+* `mini disasseble` (or `dis): decompile a program:
+
+      mini dis progran.bc
+
+## MiniVM assembly syntax
+
+Instructions are written one per line:
+
+    CONST_INT 2
+    CONST_INT 3
+
+Comments start with `#`:
+
+    # comment 1
+    OP_ADD  # comment 2
+
+Use `$` for hexadecimal numbers:
+
+    CONST_INT_BIG $FFFF
+
+Use `label:` for labels:
+
+    LOOP:
+        JUMP LOOP
+
 ## Data types
+
+Programs operate on the following values. They can be stored on stack and in variables.
 
 * **null**
 * **boolean** - True and False
@@ -181,7 +231,7 @@ See also "Bytecode format" below, for how the operations are encoded.
 
 * `OP_NEG`
 
-  Replace a number `a` to stack with `-a`.
+  Replace a number `a` on stack with `-a`.
 
 * `OP_ADD`, `OP_SUB`, `OP_MUL`, `OP_DIV`, `OP_MOD`
 
@@ -190,8 +240,8 @@ See also "Bytecode format" below, for how the operations are encoded.
   * `OP_ADD`: `a + b`
   * `OP_SUB`: `a - b`
   * `OP_MUL`: `a * b`
-  * `OP_DIV`: `a // b` (integer)
-  * `OP_MOD`: `a % b`
+  * `OP_DIV`: `a // b` (integer division)
+  * `OP_MOD`: `a % b` (modulo)
 
 * `OP_NOT`
 
@@ -202,7 +252,7 @@ See also "Bytecode format" below, for how the operations are encoded.
 
 * `CMP_EQ`, `CMP_NE`, `CMP_LT`, `CMP_LTE`, `CMP_GT`, `CMP_GTE`
 
-  Remove two values (`a`, `b`) from the stack, and push a comparison result:
+  Remove two values (`a`, `b`) from the stack, and push a comparison result (true or false):
 
   * `CMP_EQ`: `a == b`
   * `CMP_NE`: `a != b`
@@ -211,9 +261,9 @@ See also "Bytecode format" below, for how the operations are encoded.
   * `CMP_GT`: `a > b`
   * `CMP_GTE`: `a >= b`
 
-* `DUP`: Duplicate top-most value on stack.
+* `DUP`: Duplicate top value on stack.
 
-* `DROP`: Remove top-most value from stack.
+* `DROP`: Remove top value from stack.
 
 * `LOAD_LOCAL n`
 
@@ -229,9 +279,9 @@ See also "Bytecode format" below, for how the operations are encoded.
 
 * `JUMP label`
 
-  Jump to label `label` (a line marked with `label:`).
+  Jump to label `label` (instruction marked with `label:`).
 
-  Internally, the jump will be stored as *relative* byte offset (for instance, +5 bytes, or -10 bytes). The offset must be between -128 and 127, so that it will fit in 1 byte.
+  Internally, the jump will be stored as byte offset relative to current instruction (for instance, +5 bytes, or -10 bytes). The offset must be between -128 and 127, so that it will fit in 1 byte.
 
 ## Bytecode format
 
@@ -239,43 +289,45 @@ The file starts with an 8-byte header:
 
     4D 49 4E 49 56 4D 00 00 = MINIVM\0\0
 
-| Operation        | Code | Parameters                        | Effect                                                       |
-| ---------------- | ---- | --------------------------------- | ------------------------------------------------------------ |
-| `FUNC`           | 01   | `<name:string> <N:byte> <K:byte>` | Begin a new function with N params and K locals              |
-| **Constants**    |      |                                   |                                                              |
-| `CONST_NULL`     | 10   |                                   | Push `null` to stack                                         |
-| `CONST_FALSE`    | 11   |                                   | Push `false` to stack                                        |
-| `CONST_TRUE`     | 12   |                                   | Push `true` to stack                                         |
-| `CONST_INT`      | 13   | `<byte>` (signed)                 | Push an integer to stack (`-128..127`)                       |
-| `CONST_INT_BIG`  | 14   | `<byte>` x 4 (signed)             | Push an integer to stack (`-2^31..2^31-1`)                   |
-| **Arithmetic**   |      |                                   |                                                              |
-| `OP_NEG`         | 20   |                                   | `-a`                                                         |
-| `OP_ADD`         | 21   |                                   | `a + b`                                                      |
-| `OP_SUB`         | 22   |                                   | `a - b`                                                      |
-| `OP_MUL`         | 23   |                                   | `a * b`                                                      |
-| `OP_DIV`         | 24   |                                   | `a // b` (integer)                                           |
-| `OP_MOD`         | 25   |                                   | `a % b`                                                      |
-| **Logic**        |      |                                   |                                                              |
-| `OP_NOT`         | 28   |                                   | `!a`                                                         |
-| `CMP_EQ`         | 30   |                                   | `a == b`                                                     |
-| `CMP_NE`         | 31   |                                   | `a != b`                                                     |
-| `CMP_LT`         | 32   |                                   | `a < b`                                                      |
-| `CMP_LET`        | 33   |                                   | `a <= b`                                                     |
-| `CMP_GT`         | 34   |                                   | `a > b`                                                      |
-| `CMP_GTE`        | 35   |                                   | `a >= b`                                                     |
-| **Stack/vars**   |      |                                   |                                                              |
-| `DUP`            | 40   |                                   | Duplicate top value on stack                                 |
-| `DROP`           | 41   |                                   | Remove top value from stack                                  |
-| `LOAD_LOCAL`     | 4A   | `<N:byte>`                        | Push Nth local variable to stack                             |
-| `STORE_LOCAL`    | 4B   | `<N:byte>`                        | Take a value from stack and store it in Nth local variable   |
-| **Control flow** |      |                                   |                                                              |
-| `CHECK`          | 50   |                                   | Take a value from stack, skip next instruction if false/null |
-| `JUMP`           | 51   | `<N:byte>` (signed)               | Jump N bytes (+/-) from current instruction                  |
-| `RET`            | 52   |                                   | Return from function, taking top value from stack            |
-| `CALL`           | 53   | `<F:string> <N:byte>`             | Call function F, using N values from stack as arguments      |
+The operations are encoded as follows:
+
+| Operation        | Code | Parameters                        | Effect                                                         |
+| ---------------- | ---- | --------------------------------- | -------------------------------------------------------------- |
+| `FUNC`           | 01   | `<name:string> <n:byte> <k:byte>` | Begin a function `name` with `n` params and `k` locals         |
+| **Constants**    |      |                                   |                                                                |
+| `CONST_NULL`     | 10   |                                   | Push `null` to stack                                           |
+| `CONST_FALSE`    | 11   |                                   | Push `false` to stack                                          |
+| `CONST_TRUE`     | 12   |                                   | Push `true` to stack                                           |
+| `CONST_INT`      | 13   | `<n:byte>` (signed)               | Push an integer to stack (`-128 <= n <= 127`)                  |
+| `CONST_INT_BIG`  | 14   | `<byte>` x 4 (signed)             | Push an integer to stack (`-2^31 <= n <= 2^31-1`)              |
+| **Arithmetic**   |      |                                   |                                                                |
+| `OP_NEG`         | 20   |                                   | `-a`                                                           |
+| `OP_ADD`         | 21   |                                   | `a + b`                                                        |
+| `OP_SUB`         | 22   |                                   | `a - b`                                                        |
+| `OP_MUL`         | 23   |                                   | `a * b`                                                        |
+| `OP_DIV`         | 24   |                                   | `a // b` (integer)                                             |
+| `OP_MOD`         | 25   |                                   | `a % b`                                                        |
+| **Logic**        |      |                                   |                                                                |
+| `OP_NOT`         | 28   |                                   | `!a`                                                           |
+| `CMP_EQ`         | 30   |                                   | `a == b`                                                       |
+| `CMP_NE`         | 31   |                                   | `a != b`                                                       |
+| `CMP_LT`         | 32   |                                   | `a < b`                                                        |
+| `CMP_LET`        | 33   |                                   | `a <= b`                                                       |
+| `CMP_GT`         | 34   |                                   | `a > b`                                                        |
+| `CMP_GTE`        | 35   |                                   | `a >= b`                                                       |
+| **Stack/vars**   |      |                                   |                                                                |
+| `DUP`            | 40   |                                   | Duplicate top value on stack                                   |
+| `DROP`           | 41   |                                   | Remove top value from stack                                    |
+| `LOAD_LOCAL`     | 4A   | `<n:byte>`                        | Push `n`-th local variable to stack                            |
+| `STORE_LOCAL`    | 4B   | `<n:byte>`                        | Take a value from stack and store it in `n`-th local variable  |
+| **Control flow** |      |                                   |                                                                |
+| `CHECK`          | 50   |                                   | Take a value from stack, skip next instruction if false/null   |
+| `JUMP`           | 51   | `<n:byte>` (signed)               | Jump `n` bytes (+/-) from current instruction                  |
+| `RET`            | 52   |                                   | Return from function, taking top value from stack              |
+| `CALL`           | 53   | `<name:string> <n:byte>`          | Call function `name`, using `n` values from stack as arguments |
 
 
-The **string values** are ASCII strings, encoded with length as their first byte. Example:
+The **string values** are ASCII strings, encoded with length as their first byte. Examples:
 * `FUNC "main" 0 2` -> `01 04 'm' 'a' 'i' 'n' 00 02`
 * `CONST_STRING "hello"` -> `15 05 'h' 'e' 'l' 'l' 'o'`
 
