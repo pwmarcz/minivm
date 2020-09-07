@@ -44,7 +44,6 @@ class Machine:
         self.frames = []
         self.globals = {}
         self.result = None
-        self.skip = False
 
     def run(self):
         self.start()
@@ -74,10 +73,6 @@ class Machine:
         length, op, args = self.program.read_from(frame.ip)
         frame.prev_ip = frame.ip
         frame.ip += length
-
-        if self.skip:
-            self.skip = False
-            return
 
         if op == Op.FUNC:
             raise MachineError('trying to execute FUNC')
@@ -149,13 +144,13 @@ class Machine:
                 raise MachineError(f'Invalid local number: {n}')
             frame.locals[n] = self.pop()
 
-        elif op == op.CHECK:
-            val = self.pop()
-            if not val:
-                self.skip = True
-
         elif op == op.JUMP:
             frame.ip = frame.prev_ip + args[0]
+
+        elif op == op.JUMP_IF:
+            val = self.pop()
+            if val:
+                frame.ip = frame.prev_ip + args[0]
 
         elif op == op.CALL:
             name, n_args = args

@@ -53,14 +53,14 @@ class Disassembler:
     def dump_line(self, pos, length, op, args):
         if op == Op.FUNC:
             line = self.dump_instr(op, args)
-        elif op == Op.JUMP:
+        elif op in [Op.JUMP, Op.JUMP_IF]:
             target = pos + args[0]
             if target in self.targets:
                 label = self.targets[target]
-                line = f"    JUMP {self.label(label)}  "
+                line = f"    {op.name} {self.label(label)}  "
                 line += self.comment(f"# {args[0]:+}, {target:04X}")
             else:
-                line = f"    JUMP {args[0]}  "
+                line = f"    {op.name} {args[0]}  "
                 line += self.comment(f"# {args[0]:+}, {target:04X} (unknown)")
         else:
             line = "    " + self.dump_instr(op, args)
@@ -100,7 +100,7 @@ class Disassembler:
         counter = 1
 
         for pos, length, op, args in self.program.iter():
-            if op == Op.JUMP:
+            if op in [Op.JUMP, Op.JUMP_IF]:
                 target = pos + args[0]
                 if target not in positions:
                     # invalid/unaligned target, do not translate

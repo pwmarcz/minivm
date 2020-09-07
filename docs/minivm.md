@@ -18,7 +18,7 @@
 * Stack-based virtual machine
 * Each function has a separate frame with its own stack
 * Frame contains local variables; the arguments are passed as local variables
-* For control flow, there is `CHECK` (skip next instruction if false), and `JUMP` (unconditional goto)
+* For control flow, there is `JUMP` and `JUMP_IF`
 
 ## Commands
 
@@ -139,8 +139,8 @@ Will execute like this:
 
 For control flow, you can use:
 * Comparison operators (`CMP_EQ` etc.) - they will return true or false
-* `CHECK` to take a value, and skip the next instruction if false
 * `JUMP` to jump to a label
+* `JUMP_IF` to jump to a label if a condition is true
 
 You can add label to any line by prepending it with label name and colon at the beginning.
 
@@ -162,8 +162,7 @@ Example program (`examples/sum.asm`):
         LOAD_LOCAL 1
         CONST_INT 10
         CMP_EQ
-        CHECK
-        JUMP END
+        JUMP_IF END
 
         # sum = sum + index
         LOAD_LOCAL 0
@@ -281,15 +280,15 @@ See also "Bytecode format" below, for how the operations are encoded.
 
   Remove a value from stack, and store it in local variable number `n`.
 
-* `CHECK`
-
-  Remove a value from stack. If it's falsy (null/false/0/empty string), skip next instruction
-
 * `JUMP label`
 
   Jump to label `label` (instruction marked with `label:`).
 
   Internally, the jump will be stored as byte offset relative to current instruction (for instance, +5 bytes, or -10 bytes). The offset must be between -128 and 127, so that it will fit in 1 byte.
+
+* `JUMP_IF label`
+
+  Same as `JUMP label`, but first removes a value from the stack, and jumps only if it's not falsy (`false`, `null` or `0`).
 
 ## Bytecode format
 
@@ -331,10 +330,10 @@ The operations are encoded as follows:
 | `LOAD_LOCAL`     | 4A   | `<n:byte>`                        | Push `n`-th local variable to stack                            |
 | `STORE_LOCAL`    | 4B   | `<n:byte>`                        | Take a value from stack and store it in `n`-th local variable  |
 | **Control flow** |      |                                   |                                                                |
-| `CHECK`          | 50   |                                   | Take a value from stack, skip next instruction if false/null   |
 | `JUMP`           | 51   | `<n:byte>` (signed)               | Jump `n` bytes (+/-) from current instruction                  |
-| `RET`            | 52   |                                   | Return from function, taking top value from stack              |
-| `CALL`           | 53   | `<name:string> <n:byte>`          | Call function `name`, using `n` values from stack as arguments |
+| `JUMP_IF`        | 52   | `<n:byte>` (signed)               | Take a value from stack, jump `n` bytes if not false           |
+| `RET`            | 58   |                                   | Return from function, taking top value from stack              |
+| `CALL`           | 59   | `<name:string> <n:byte>`          | Call function `name`, using `n` values from stack as arguments |
 
 
 The **string values** are ASCII strings, encoded with length as their first byte. Examples:

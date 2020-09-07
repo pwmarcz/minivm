@@ -91,7 +91,7 @@ class Assembler:
         if len(tokens) - 1 != len(params):
             raise ParseError(tokens[0].lineno, tokens[0].col, f"wrong number of parameters for {op.name}")
 
-        if op == Op.JUMP and isinstance(tokens[1], TIdent):
+        if op in [Op.JUMP, Op.JUMP_IF] and isinstance(tokens[1], TIdent):
             label = tokens[1].value.upper()
             self.sources[program_pos + 1] = tokens[1], label
             return bytes([op.value, 0])

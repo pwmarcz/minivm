@@ -39,10 +39,10 @@ class Op(Enum):
     LOAD_LOCAL = 0x4A
     STORE_LOCAL = 0x4B
 
-    CHECK = 0x50
-    JUMP = 0x51
-    RET = 0x52
-    CALL = 0x53
+    JUMP = 0x50
+    JUMP_IF = 0x51
+    RET = 0x58
+    CALL = 0x59
 
 
 class Param(Enum):
@@ -62,6 +62,7 @@ PARAMS = {
     Op.LOAD_LOCAL: [Param.UINT],
     Op.STORE_LOCAL: [Param.UINT],
     Op.JUMP: [Param.INT],
+    Op.JUMP_IF: [Param.INT],
     Op.CALL: [Param.STRING, Param.UINT],
 }
 

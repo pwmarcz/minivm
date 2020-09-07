@@ -14,8 +14,7 @@ LOOP:
     LOAD_LOCAL 1
     CONST_INT 10
     CMP_EQ
-    CHECK
-    JUMP END
+    JUMP_IF END
 
     # sum = sum + index
     LOAD_LOCAL 0
