@@ -265,21 +265,21 @@ See also "Bytecode format" below, for how the operations are encoded.
 
 * `DROP`: Remove top value from stack.
 
-* `LOAD_GLOBAL n`
+* `LOAD_GLOBAL "name"`
 
-  Push a global variable number `n` to stack. There are 256 global variables, numbered 0 to 255.
+  Push a global variable called `name` to stack. The variable needs to be initialized using `STORE_GLOBAL` first.
 
-* `STORE_GLOBAL n`
+* `STORE_GLOBAL "name"`
 
-  Remove a value from stack, and store it in global variable number `n`. There are 256 global variables, numbered 0 to 255.
+  Remove a value from stack, and store it in global variable called `name`.
 
 * `LOAD_LOCAL n`
 
-  Push a local variable `n` to stack.
+  Push a local variable number `n` to stack. In a function declared as `FUNC "name" n k`, the first `n` local variables contain function arguments.
 
 * `STORE_LOCAL n`
 
-  Remove a value from stack, and store it in local variable `n`.
+  Remove a value from stack, and store it in local variable number `n`.
 
 * `CHECK`
 

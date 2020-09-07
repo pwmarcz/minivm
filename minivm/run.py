@@ -42,7 +42,7 @@ class Machine:
                 entry = pos + length
                 self.functions[name] = Function(name, entry, n_params, n_locals)
         self.frames = []
-        self.globals = [None] * 256
+        self.globals = {}
         self.result = None
         self.skip = False
 
@@ -128,12 +128,14 @@ class Machine:
             self.pop()
 
         elif op == op.LOAD_GLOBAL:
-            n = args[0]
-            self.push(self.globals[n])
+            name = args[0]
+            if name not in self.globals:
+                raise MachineError(f'Undefined global name: {name}')
+            self.push(self.globals[name])
 
         elif op == op.STORE_GLOBAL:
-            n = args[0]
-            self.globals[n] = self.pop()
+            name = args[0]
+            self.globals[name] = self.pop()
 
         elif op == op.LOAD_LOCAL:
             n = args[0]
