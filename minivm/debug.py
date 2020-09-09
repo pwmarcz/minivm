@@ -146,4 +146,4 @@ def main():
         return debugger.run()
 
     result = curses.wrapper(run_debugger)
-    print('Result: ', result)
+    print(f'result: {dump_value(result)}')

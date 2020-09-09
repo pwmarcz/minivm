@@ -354,7 +354,7 @@ def main():
 
     try:
         result = machine.run()
-        print(f'result: {result!r}')
+        print(f'result: {dump_value(result)}')
     except MachineError as e:
         print('Traceback (most recent frame last):', file=sys.stderr)
         for error_line in machine.traceback():
