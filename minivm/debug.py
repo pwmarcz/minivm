@@ -100,7 +100,7 @@ class Debugger:
 
     def draw_frame_details(self, frame, y):
         x = self.w // 2 + 1
-        w = self.w // 2 - 1
+        # w = self.w // 2 - 1
         self.window.addstr(y, x, f'Locals ({len(frame.locals)}):', self.colors.DIM)
         y += 1
         for i, value in enumerate(frame.locals):

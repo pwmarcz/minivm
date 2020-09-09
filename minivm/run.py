@@ -25,9 +25,59 @@ class Frame:
         self.locals += [None] * n_locals
 
 
-NATIVE_FUNCTIONS = {
-    'print': (1, print),
-}
+NATIVE_FUNCTIONS = {}
+
+
+def native(name, n_args):
+    def wrapper(func):
+        NATIVE_FUNCTIONS[name] = (n_args, func)
+        return func
+
+    return wrapper
+
+
+@native('print', 1)
+def native_print(machine, val):
+    if isinstance(val, str):
+        out = val
+    else:
+        out = dump_value(val)
+    print(out)
+
+
+@native('println', 1)
+def native_println(machine, val):
+    native_print(machine, val)
+    native_print(machine, '\n')
+
+
+@native('input', 0)
+def native_input(machine, val):
+    return input()
+
+
+@native('to_int', 1)
+def native_to_int(machine, val):
+    if isinstance(val, str):
+        try:
+            return int(val)
+        except ValueError:
+            return None
+    raise MachineError(f'to_int: expecting a string, got {dump_value(val)}')
+
+
+@native('to_string', 1)
+def native_to_string(machine, val):
+    return dump_value(val)
+
+
+@native('concat', 2)
+def native_concat(machine, s1, s2):
+    if not isinstance(s1, str):
+        raise MachineError('concat: expecting a string, got {dump_value(s1)}')
+    if not isinstance(s2, str):
+        raise MachineError('concat: expecting a string, got {dump_value(s2)}')
+    return s1 + s2
 
 
 STACK_LIMIT = 256
@@ -240,7 +290,7 @@ class Machine:
                 )
 
             try:
-                result = native_func(*args)
+                result = native_func(self, *args)
             except Exception as e:
                 raise MachineError(f'Error running native function {name}: {e}')
             self.push(result)
