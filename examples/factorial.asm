@@ -10,13 +10,9 @@ FUNC "factorial" 1 1
 
 LOOP:
     LOAD_LOCAL 0
-    DUP
-
-    LOAD_LOCAL 0
     CONST_INT 1
     CMP_LTE
-    CHECK
-    JUMP END
+    JUMP_IF END
 
     LOAD_LOCAL 0
     LOAD_LOCAL 1

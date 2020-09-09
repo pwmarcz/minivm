@@ -3,6 +3,7 @@ from pathlib import Path
 import sys
 from collections import namedtuple
 
+from .tokens import dump_value
 from .program import Program, Op, HEADER
 from .assemble import run_assembler
 from .disassemble import Disassembler
@@ -44,6 +45,12 @@ class Machine:
         self.frames = []
         self.globals = {}
         self.result = None
+
+    @property
+    def ip(self):
+        if not self.frames:
+            return None
+        return self.frames[-1].ip
 
     def run(self):
         self.start()
@@ -88,7 +95,7 @@ class Machine:
         elif op == Op.OP_NEG:
             val = self.pop()
             if not isinstance(val, int):
-                raise MachineError(f'expecting an integer, not {val!r}')
+                raise MachineError(f'expecting an integer, not {dump_value(val)}')
             self.push(-val)
 
         elif op in [
@@ -171,9 +178,9 @@ class Machine:
     def handle_arith(self, op):
         a, b = self.pop_many(2)
         if not isinstance(a, int):
-            raise MachineError(f'expecting an integer, not {a!r}')
+            raise MachineError(f'expecting an integer, not {dump_value(a)}')
         if not isinstance(b, int):
-            raise MachineError(f'expecting an integer, not {b!r}')
+            raise MachineError(f'expecting an integer, not {dump_value(b)}')
 
         if op == Op.OP_ADD:
             result = a + b
@@ -199,7 +206,9 @@ class Machine:
 
         if op not in [Op.CMP_EQ, Op.CMP_NE]:
             if type(a) != type(b):
-                raise MachineError(f'incompatible types for comparison: {a!r} and {b!r}')
+                raise MachineError(
+                    'incompatible types for comparison: '
+                    f'{dump_value(a)} and {dump_value(b)}')
 
         if op == Op.CMP_EQ:
             result = a == b
@@ -265,7 +274,7 @@ class Machine:
         dis = Disassembler(self.program, color=True, hex=True)
         for frame in self.frames:
             # TODO colors
-            yield f'{frame.prev_ip:04X}: ({frame.name})'
+            yield f'{frame.name} ({frame.prev_ip:04X})'
             length, op, args = self.program.read_from(frame.prev_ip)
             dump = dis.dump_line(frame.prev_ip, length, op, args)
             yield '  ' + dump

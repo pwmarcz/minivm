@@ -19,6 +19,20 @@ STRING_ALLOWED = set(
 ) - set(STRING_ESCAPES)
 
 
+def dump_value(value):
+    if value is None:
+        return 'null'
+    if value is True:
+        return 'true'
+    if value is False:
+        return 'false'
+    if isinstance(value, str):
+        return escape_string(value)
+    if isinstance(value, int):
+        return str(value)
+    assert False, f'wrong type: {value!r}'
+
+
 def escape_string(s):
     result = '"'
     for c in s:

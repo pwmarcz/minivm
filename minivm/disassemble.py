@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 from .program import Op, PARAMS, Param, Program, HEADER
-from .tokens import escape_string
+from .tokens import dump_value
 
 
 class Disassembler:
@@ -37,33 +37,43 @@ class Disassembler:
             return "\x1b[96m" + s + "\x1b[0m"
         return s
 
+    def dump_lines(self):
+        for pos, length, op, args in self.program.iter():
+            if op == Op.FUNC:
+                yield pos, ''
+            yield pos, self.dump_line(pos, length, op, args)
+
     def dump(self):
         lines = []
         for pos, length, op, args in self.program.iter():
             if op == Op.FUNC:
                 lines.append("")
 
-            if pos in self.targets:
-                lines.append(self.label(self.targets[pos]) + ":")
-
             lines.append(self.dump_line(pos, length, op, args))
 
         return "\n".join(lines) + "\n"
 
     def dump_line(self, pos, length, op, args):
+        if pos in self.targets:
+            prefix = self.label(self.targets[pos]) + ":"
+        else:
+            prefix = ''
+
+        line = self.ljust(prefix, 5)
+
         if op == Op.FUNC:
-            line = self.dump_instr(op, args)
+            line += self.dump_instr(op, args)
         elif op in [Op.JUMP, Op.JUMP_IF]:
             target = pos + args[0]
             if target in self.targets:
                 label = self.targets[target]
-                line = f"    {op.name} {self.label(label)}  "
+                line += f"{op.name} {self.label(label)}  "
                 line += self.comment(f"# {args[0]:+}, {target:04X}")
             else:
-                line = f"    {op.name} {args[0]}  "
+                line += f"{op.name} {args[0]}  "
                 line += self.comment(f"# {args[0]:+}, {target:04X} (unknown)")
         else:
-            line = "    " + self.dump_instr(op, args)
+            line += self.dump_instr(op, args)
 
         if self.hex:
             data = self.program.buf[pos : pos + length]
@@ -117,10 +127,10 @@ class Disassembler:
         for param, arg in zip(params, args):
             result += " "
             if param == Param.STRING:
-                result += self.string(escape_string(arg))
+                result += self.string(dump_value(arg))
             else:
                 assert isinstance(arg, int)
-                result += self.number(str(arg))
+                result += self.number(dump_value(arg))
 
         return result
 
