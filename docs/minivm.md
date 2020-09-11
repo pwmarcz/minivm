@@ -62,7 +62,7 @@ Programs operate on the following values. They can be stored on stack and in var
 
 * **null**
 * **boolean** - True and False
-* **int** (32-bit, TODO overflow)
+* **int** - 16-bit signed integers (between -0x8000 and 0x7FFF)
 * **string**
 
 ## Stack
@@ -226,7 +226,7 @@ See also "Bytecode format" below, for how the operations are encoded.
 * `CONST_TRUE`: Push `true` to stack.
 * `CONST_INT n`, `CONST_INT_BIG n`
 
-  Push an integer N to stack. The value for `CONST_INT` must be in the range `-128..127`, and the value for `CONST_INT_BIG` must be between `-2^31..2^31-1`.
+  Push an integer N to stack. The value for `CONST_INT` must be in the range `-0x80..0x7F`, and the value for `CONST_INT_BIG` must be between `-0x8000..0x7FFF`.
 
 * `CONST_STRING "string"`
 
@@ -341,7 +341,6 @@ The operations are encoded as follows:
 | `CALL_VOID`      | 5A   | `<name:string> <n:byte>`          | Same as `CALL`, but do not put the result on stack             |
 
 
-
 The **string values** are ASCII strings, encoded with length as their first byte. Examples:
 * `FUNC "main" 0 2` -> `01 04 'm' 'a' 'i' 'n' 00 02`
 * `CONST_STRING "hello"` -> `15 05 'h' 'e' 'l' 'l' 'o'`
@@ -353,6 +352,3 @@ Examples:
 * `CONST_INT_BIG 51966` = `CONST_INT_BIG $CAFE` -> `14 FE CA`
 * `JUMP 16` = `JUMP $10` -> `51 10 00`
 * `JUMP -1` -> `51 FF FF`
-
-
-(TODO explain conversion)

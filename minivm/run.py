@@ -60,7 +60,7 @@ def native_input(machine):
 def native_to_int(machine, val):
     if isinstance(val, str):
         try:
-            return int(val)
+            return overflow(int(val))
         except ValueError:
             return None
     raise MachineError(f'to_int: expecting a string, got {dump_value(val)}')
@@ -80,6 +80,13 @@ def native_concat(machine, s1, s2):
     if not isinstance(s2, str):
         raise MachineError('concat: expecting a string, got {dump_value(s2)}')
     return s1 + s2
+
+
+def overflow(n):
+    n = n & 0xFFFF
+    if n & 0x8000:
+        n -= 0x10000
+    return n
 
 
 STACK_LIMIT = 256
@@ -148,7 +155,7 @@ class Machine:
             val = self.pop()
             if not isinstance(val, int):
                 raise MachineError(f'expecting an integer, not {dump_value(val)}')
-            self.push(-val)
+            self.push(overflow(-val))
 
         elif op in [
             Op.OP_ADD,
@@ -255,7 +262,7 @@ class Machine:
         else:
             assert False, op
 
-        self.push(result)
+        self.push(overflow(result))
 
     def handle_cmp(self, op):
         a, b = self.pop_many(2)
