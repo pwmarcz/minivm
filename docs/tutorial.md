@@ -98,15 +98,13 @@ Compile "Forth-like" expressions like "2 2 + 3 *".
 * Decide based on at first character
 
 We will need:
-* identifiers (name: `IDENT`, value: `"hello"`)
-* integer numbers (name: `NUMBER`, value: `123`)
-* special (name: `SPECIAL`, value: `+`):
+* integer numbers (type: `NUMBER`, value: `123`)
+* special (type: `+`, `-` etc.). At least the following:
   ```
   ( )
   + - * /
-  == !=
-  =
   ```
+* bonus: identifiers (type: `IDENT`, value: `"hello"`)
 
 * Exercise: finish a tokenizer (or write own from start)
 
