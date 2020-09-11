@@ -17,13 +17,14 @@ class MachineError(Exception):
 
 
 class Frame:
-    def __init__(self, name, ip, args, n_locals):
+    def __init__(self, name, ip, args, n_locals, *, void):
         self.name = name
         self.prev_ip = ip
         self.ip = ip
         self.stack = []
         self.locals = list(args)
         self.locals += [None] * n_locals
+        self.void = void
 
 
 NATIVE_FUNCTIONS = {}
@@ -172,9 +173,9 @@ class Machine:
         return len(self.frames) > 0
 
     def start(self):
-        self.enter_function('main', [])
+        self.enter_function('main', [], void=False)
 
-    def enter_function(self, name, args):
+    def enter_function(self, name, args, *, void):
         if name not in self.functions:
             raise MachineError(f'Function not found: {name}')
 
@@ -182,7 +183,7 @@ class Machine:
         if len(args) != func.n_params:
             raise MachineError(f'Function {name} expects {func.n_params} arguments, not {len(args)}')
 
-        frame = Frame(name, func.entry, args, func.n_locals)
+        frame = Frame(name, func.entry, args, func.n_locals, void=void)
         self.frames.append(frame)
 
     def step(self):
@@ -280,9 +281,10 @@ class Machine:
             val = None
             if frame.stack:
                 val = self.pop()
-            self.frames.pop()
+            frame = self.frames.pop()
             if self.frames:
-                self.push(val)
+                if not frame.void:
+                    self.push(val)
             else:
                 self.result = val
         else:
@@ -342,7 +344,7 @@ class Machine:
         args = self.pop_many(n_args)
 
         if name in self.functions:
-            self.enter_function(name, args)
+            self.enter_function(name, args, void=void)
         elif name in NATIVE_FUNCTIONS:
             n_params, native_func = NATIVE_FUNCTIONS[name]
             if n_args != n_params:
