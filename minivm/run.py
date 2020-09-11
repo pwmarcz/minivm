@@ -43,7 +43,7 @@ def native_print(machine, val):
         out = val
     else:
         out = dump_value(val)
-    print(out, end='')
+    machine.print(out)
 
 
 @native('println', 1)
@@ -54,7 +54,7 @@ def native_println(machine, val):
 
 @native('input', 0)
 def native_input(machine):
-    return input()
+    return machine.input()
 
 
 @native('to_int', 1)
@@ -137,6 +137,24 @@ class Machine:
         self.frames = []
         self.globals = {}
         self.result = None
+        self.output = ''
+
+        self.use_io = True
+        self.on_input = None
+
+    def print(self, s):
+        self.output += s
+        if self.use_io:
+            print(s, end='')
+
+    def input(self):
+        if self.use_io:
+            result = input()
+        else:
+            assert self.on_input
+            result = self.on_input()
+        self.output += result + '\n'
+        return result
 
     @property
     def ip(self):

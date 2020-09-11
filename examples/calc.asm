@@ -37,6 +37,7 @@ menu:
     JUMP_IF add_list
 
     # If we got here, the input is unrecognized
+    DROP
     LOAD_LOCAL 0
     CONST_STRING "Unrecognized input!"
     CALL_VOID "println" 1
