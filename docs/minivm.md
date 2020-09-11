@@ -211,6 +211,10 @@ See also "Bytecode format" below, for how the operations are encoded.
 
   Then the local variables in the new frame will be `10 15 null null`.
 
+* `CALL_VOID "name" n`
+
+  Same as `CALL`, but after returning, the function result will not be pushed to stack.
+
 * `RET`
 
   Return to previous function. This will remove the current frame, but use the top-most value from stack as a result. The result will be pushed to stack in previous frame.
@@ -284,7 +288,7 @@ See also "Bytecode format" below, for how the operations are encoded.
 
   Jump to label `label` (instruction marked with `label:`).
 
-  Internally, the jump will be stored as byte offset relative to current instruction (for instance, +5 bytes, or -10 bytes). The offset must be between -128 and 127, so that it will fit in 1 byte.
+  Internally, the jump will be stored as byte offset relative to current instruction (for instance, +5 bytes, or -10 bytes). The offset is encoded in 2 bytes, and must be between `-0x8000` and `0x7FFF`.
 
 * `JUMP_IF label`
 
@@ -305,8 +309,8 @@ The operations are encoded as follows:
 | `CONST_NULL`     | 10   |                                   | Push `null` to stack                                           |
 | `CONST_FALSE`    | 11   |                                   | Push `false` to stack                                          |
 | `CONST_TRUE`     | 12   |                                   | Push `true` to stack                                           |
-| `CONST_INT`      | 13   | `<n:byte>` (signed)               | Push an integer to stack (`-128 <= n <= 127`)                  |
-| `CONST_INT_BIG`  | 14   | `<byte>` x 4 (signed)             | Push an integer to stack (`-2^31 <= n <= 2^31-1`)              |
+| `CONST_INT`      | 13   | `<n:byte>` (signed)               | Push an integer to stack (`-0x80 <= n <= 0x7F`)                |
+| `CONST_INT_BIG`  | 14   | `<nl:byte>` `<nh:byte>` (signed)  | Push an integer to stack (`-0x8000 <= n <= 0x7FFF`)            |
 | **Arithmetic**   |      |                                   |                                                                |
 | `OP_NEG`         | 20   |                                   | `-a`                                                           |
 | `OP_ADD`         | 21   |                                   | `a + b`                                                        |
@@ -330,22 +334,25 @@ The operations are encoded as follows:
 | `LOAD_LOCAL`     | 4A   | `<n:byte>`                        | Push `n`-th local variable to stack                            |
 | `STORE_LOCAL`    | 4B   | `<n:byte>`                        | Take a value from stack and store it in `n`-th local variable  |
 | **Control flow** |      |                                   |                                                                |
-| `JUMP`           | 51   | `<n:byte>` (signed)               | Jump `n` bytes (+/-) from current instruction                  |
-| `JUMP_IF`        | 52   | `<n:byte>` (signed)               | Take a value from stack, jump `n` bytes if not false           |
+| `JUMP`           | 51   | `<nl:byte>` `<nh:byte>` (signed)  | Jump `n` bytes (+/-) from current instruction                  |
+| `JUMP_IF`        | 52   | `<nl:byte>` `<nh:byte>` (signed)  | Take a value from stack, jump `n` bytes if not false           |
 | `RET`            | 58   |                                   | Return from function, taking top value from stack              |
 | `CALL`           | 59   | `<name:string> <n:byte>`          | Call function `name`, using `n` values from stack as arguments |
+| `CALL_VOID`      | 5A   | `<name:string> <n:byte>`          | Same as `CALL`, but do not put the result on stack             |
+
 
 
 The **string values** are ASCII strings, encoded with length as their first byte. Examples:
 * `FUNC "main" 0 2` -> `01 04 'm' 'a' 'i' 'n' 00 02`
 * `CONST_STRING "hello"` -> `15 05 'h' 'e' 'l' 'l' 'o'`
 
-The **integer values** for `CONST_INT` and `CONST_INT_BIG` are signed 8-bit and 32-bit integers. The encoding for 32-bit integers is little-endian.
+The numbers of `CONST_INT_BIG` and `JUMP*` are signed 16-bit (2-byte values). The encoding is little-endian (lower byte first).
 
 Examples:
 * `CONST_INT 42` = `CONST_INT $2A` -> `13 2A`
-* `CONST_INT -1` -> `13 FF`
-* `CONST_INT_BIG 51966` = `CONST_INT_BIG $CAFE` -> `14 FE CA 00 00`
+* `CONST_INT_BIG 51966` = `CONST_INT_BIG $CAFE` -> `14 FE CA`
+* `JUMP 16` = `JUMP $10` -> `51 10 00`
+* `JUMP -1` -> `51 FF FF`
 
 
 (TODO explain conversion)

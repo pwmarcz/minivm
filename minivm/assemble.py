@@ -31,7 +31,7 @@ class Assembler:
         min_val, max_val = {
             Param.UINT: (0, 0xFF),
             Param.INT: (-0x80, 0x7F),
-            Param.INT_BIG: (-0x8000_0000, 0x7FFF_FFFF),
+            Param.INT_BIG: (-0x8000, 0x7FFF),
         }[param]
 
         value = token.value
@@ -50,13 +50,11 @@ class Assembler:
             return bytes([value])
         elif param == Param.INT_BIG:
             if value < 0:
-                value += 0x1_0000_0000
+                value += 0x10000
             return bytes(
                 [
                     value & 0xFF,
                     (value >> 8) & 0xFF,
-                    (value >> 16) & 0xFF,
-                    (value >> 24) & 0xFF,
                 ]
             )
 
@@ -94,7 +92,7 @@ class Assembler:
         if op in [Op.JUMP, Op.JUMP_IF] and isinstance(tokens[1], TIdent):
             label = tokens[1].value.upper()
             self.sources[program_pos + 1] = tokens[1], label
-            return bytes([op.value, 0])
+            return bytes([op.value, 0, 0])
 
         result = bytearray()
         result.append(op.value)
@@ -111,13 +109,18 @@ class Assembler:
 
             target = self.targets[label]
             delta = target - source + 1
-            if not -128 <= delta <= 127:
+            if not (-0x8000 <= delta <= 0x7FFF):
                 self.errors.append(
-                    ParseError(token.lineno, token.col, f'jump is too far: {delta}'))
+                    ParseError(
+                        token.lineno, token.col,
+                        f'jump too big ({delta} bytes)'
+                    )
+                )
+
             if delta < 0:
-                self.data[source] = delta + 0x100
-            else:
-                self.data[source] = delta
+                delta += 0x10000
+            self.data[source] = delta & 0xFF
+            self.data[source + 1] = (delta >> 8) & 0xFF
 
     def assemble(self):
         for lineno, line in enumerate(self.lines):
@@ -151,16 +154,14 @@ class AssemblerTest(unittest.TestCase):
     def test_assemble(self):
         code = '''\
 
-FUNC "hello" 0 2
+    FUNC "hello" 0 2
     CONST_INT 2
     CONST_INT 3
-L2:
-    OP_ADD
-    JUMP L1  # +6, 0014
-    JUMP L2  # -3, 000D
-    JUMP -1  # -1, 0011 (unknown)
-L1:
-    CALL "print" 1
+L2: OP_ADD
+    JUMP L1  # +9, 001F
+    JUMP L2  # -4, 0015
+    JUMP -1  # -1, 001B (unknown)
+L1: CALL "print" 1
     RET
 '''
         asm = Assembler(code)
@@ -171,9 +172,9 @@ L1:
             Op.CONST_INT.value, 2,
             Op.CONST_INT.value, 3,
             Op.OP_ADD.value,
-            Op.JUMP.value, 6,
-            Op.JUMP.value, 0x100-3,
-            Op.JUMP.value, 0x100-1,
+            Op.JUMP.value, 9, 0,
+            Op.JUMP.value, 0x100-4, 0xFF,
+            Op.JUMP.value, 0x100-1, 0xFF,
             Op.CALL.value, 5, *b'print', 1,
             Op.RET.value,
         ])

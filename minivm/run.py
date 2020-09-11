@@ -42,7 +42,7 @@ def native_print(machine, val):
         out = val
     else:
         out = dump_value(val)
-    print(out)
+    print(out, end='')
 
 
 @native('println', 1)
@@ -52,7 +52,7 @@ def native_println(machine, val):
 
 
 @native('input', 0)
-def native_input(machine, val):
+def native_input(machine):
     return input()
 
 
@@ -68,6 +68,8 @@ def native_to_int(machine, val):
 
 @native('to_string', 1)
 def native_to_string(machine, val):
+    if isinstance(val, str):
+        return val
     return dump_value(val)
 
 
@@ -211,7 +213,11 @@ class Machine:
 
         elif op == op.CALL:
             name, n_args = args
-            self.handle_call(name, n_args)
+            self.handle_call(name, n_args, void=False)
+
+        elif op == op.CALL_VOID:
+            name, n_args = args
+            self.handle_call(name, n_args, void=True)
 
         elif op == op.RET:
             val = None
@@ -277,7 +283,7 @@ class Machine:
 
         self.push(result)
 
-    def handle_call(self, name, n_args):
+    def handle_call(self, name, n_args, *, void):
         args = self.pop_many(n_args)
 
         if name in self.functions:
@@ -286,14 +292,15 @@ class Machine:
             n_params, native_func = NATIVE_FUNCTIONS[name]
             if n_args != n_params:
                 raise MachineError(
-                    f'Function {name} expects {native_func.n_params} arguments, not {len(args)}'
+                    f'Function {name} expects {n_params} arguments, not {len(args)}'
                 )
 
             try:
                 result = native_func(self, *args)
             except Exception as e:
                 raise MachineError(f'Error running native function {name}: {e}')
-            self.push(result)
+            if not void:
+                self.push(result)
         else:
             raise MachineError(f'unknown function: {name}')
 

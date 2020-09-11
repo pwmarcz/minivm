@@ -1,7 +1,7 @@
 FUNC "main" 0 2
     CONST_INT 5
     CALL "factorial" 1
-    CALL "print" 1
+    CALL_VOID "println" 1
     RET
 
 FUNC "factorial" 1 1

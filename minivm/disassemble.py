@@ -55,11 +55,11 @@ class Disassembler:
 
     def dump_line(self, pos, length, op, args):
         if pos in self.targets:
-            prefix = self.label(self.targets[pos]) + ":"
+            prefix = self.label(self.targets[pos]) + ": "
         else:
             prefix = ''
 
-        line = self.ljust(prefix, 5)
+        line = self.ljust(prefix, 4)
 
         if op == Op.FUNC:
             line += self.dump_instr(op, args)
@@ -143,9 +143,9 @@ class DisassemblerTest(unittest.TestCase):
             Op.CONST_INT.value, 2,
             Op.CONST_INT.value, 3,
             Op.OP_ADD.value,
-            Op.JUMP.value, 6,
-            Op.JUMP.value, 0x100-3,
-            Op.JUMP.value, 0x100-1,
+            Op.JUMP.value, 9, 0,
+            Op.JUMP.value, 0x100-4, 0xFF,
+            Op.JUMP.value, 0x100-1, 0xFF,
             Op.CALL.value, 5, *b'print', 1,
             Op.RET.value,
         ]
@@ -154,16 +154,14 @@ class DisassemblerTest(unittest.TestCase):
         dis = Disassembler(program, hex=False, color=False).dump()
         self.assertEqual(dis, '''\
 
-FUNC "hello" 0 2
+    FUNC "hello" 0 2
     CONST_INT 2
     CONST_INT 3
-L2:
-    OP_ADD
-    JUMP L1  # +6, 001C
-    JUMP L2  # -3, 0015
-    JUMP -1  # -1, 0019 (unknown)
-L1:
-    CALL "print" 1
+L2: OP_ADD
+    JUMP L1  # +9, 001F
+    JUMP L2  # -4, 0015
+    JUMP -1  # -1, 001B (unknown)
+L1: CALL "print" 1
     RET
 ''')
 

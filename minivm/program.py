@@ -43,6 +43,7 @@ class Op(Enum):
     JUMP_IF = 0x51
     RET = 0x58
     CALL = 0x59
+    CALL_VOID = 0x5A
 
 
 class Param(Enum):
@@ -61,9 +62,10 @@ PARAMS = {
     Op.STORE_GLOBAL: [Param.STRING],
     Op.LOAD_LOCAL: [Param.UINT],
     Op.STORE_LOCAL: [Param.UINT],
-    Op.JUMP: [Param.INT],
-    Op.JUMP_IF: [Param.INT],
+    Op.JUMP: [Param.INT_BIG],
+    Op.JUMP_IF: [Param.INT_BIG],
     Op.CALL: [Param.STRING, Param.UINT],
+    Op.CALL_VOID: [Param.STRING, Param.UINT],
 }
 
 
@@ -128,11 +130,9 @@ class Program:
     def read_int_big(self):
         r1 = self.read_uint()
         r2 = self.read_uint()
-        r3 = self.read_uint()
-        r4 = self.read_uint()
-        result = r1 + (r2 << 8) + (r3 << 16) + (r4 << 24)
-        if result & 0x8000_0000:
-            result -= 0x1_0000_0000
+        result = r1 + (r2 << 8)
+        if result & 0x8000:
+            result -= 0x10000
         return result
 
     def read_string(self):
@@ -162,13 +162,13 @@ class ProgramTest(unittest.TestCase):
             *HEADER,
             Op.FUNC.value, 3, *b'foo', 4, 5,
             Op.CONST_INT.value, 0xFF,
-            Op.CONST_INT_BIG.value, 0xFF, 0x01, 0x00, 0x00,
+            Op.CONST_INT_BIG.value, 0xFF, 0x01,
             Op.CALL.value, 3, *b'bar', 5,
         ]
         program = Program(data)
         self.assertListEqual(list(program.iter()), [
             (8, 7, Op.FUNC, ['foo', 4, 5]),
             (15, 2, Op.CONST_INT, [-1]),
-            (17, 5, Op.CONST_INT_BIG, [0x1FF]),
-            (22, 6, Op.CALL, ['bar', 5]),
+            (17, 3, Op.CONST_INT_BIG, [0x1FF]),
+            (20, 6, Op.CALL, ['bar', 5]),
         ])
