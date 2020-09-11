@@ -187,7 +187,14 @@ Example program (`examples/sum.asm`):
 
 The following functions are available to the program, without defining them. Make sure to call them with correct number of arguments.
 
-* `print(x)` - print `x` to standard output
+* `print(x)` - print a value to standard output (without newline)
+* `println(x)` - print a value to standard output (with newline)
+* `input()` - read a string from standard input
+* `to_int(s)` - convert a string to int
+* `to_string(x)` - convert a value to string
+* `concat(s1, s2)` - concatenate two strings
+* `length(s)` - compute length of a string
+* `slice(s, pos, length)` - return a substring starting from `pos` and `length` characters long
 
 ## All operations
 

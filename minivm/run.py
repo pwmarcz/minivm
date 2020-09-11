@@ -2,6 +2,7 @@ import argparse
 from pathlib import Path
 import sys
 from collections import namedtuple
+import base64
 
 from .tokens import dump_value
 from .program import Program, Op, HEADER
@@ -58,12 +59,11 @@ def native_input(machine):
 
 @native('to_int', 1)
 def native_to_int(machine, val):
-    if isinstance(val, str):
-        try:
-            return overflow(int(val))
-        except ValueError:
-            return None
-    raise MachineError(f'to_int: expecting a string, got {dump_value(val)}')
+    check_string(val)
+    try:
+        return overflow(int(val))
+    except ValueError:
+        return None
 
 
 @native('to_string', 1)
@@ -75,11 +75,34 @@ def native_to_string(machine, val):
 
 @native('concat', 2)
 def native_concat(machine, s1, s2):
-    if not isinstance(s1, str):
-        raise MachineError('concat: expecting a string, got {dump_value(s1)}')
-    if not isinstance(s2, str):
-        raise MachineError('concat: expecting a string, got {dump_value(s2)}')
+    check_string(s1)
+    check_string(s2)
     return s1 + s2
+
+
+@native('length', 1)
+def native_length(machine, s):
+    check_string(s)
+    return len(s)
+
+
+@native('slice', 3)
+def native_slice(machine, s, pos, length):
+    check_string(s)
+    check_int(pos)
+    check_int(length)
+    if pos < 0 or length < 0:
+        raise MachineError('slice: arguments cannot be negative')
+    return s[pos:pos+length]
+
+
+@native('b64d', 1)
+def native_b64d(machine, s):
+    check_string(s)
+    try:
+        return base64.b64decode(s).decode('ascii')
+    except ValueError:
+        return None
 
 
 def overflow(n):
@@ -87,6 +110,16 @@ def overflow(n):
     if n & 0x8000:
         n -= 0x10000
     return n
+
+
+def check_int(val):
+    if isinstance(val, bool) or not isinstance(val, int):
+        raise MachineError(f'expecting an integer, got {dump_value(val)}')
+
+
+def check_string(val):
+    if not isinstance(val, str):
+        raise MachineError(f'expecting a string, got {dump_value(val)}')
 
 
 STACK_LIMIT = 256
@@ -153,8 +186,7 @@ class Machine:
 
         elif op == Op.OP_NEG:
             val = self.pop()
-            if not isinstance(val, int):
-                raise MachineError(f'expecting an integer, not {dump_value(val)}')
+            check_int(val)
             self.push(overflow(-val))
 
         elif op in [
@@ -240,10 +272,8 @@ class Machine:
 
     def handle_arith(self, op):
         a, b = self.pop_many(2)
-        if not isinstance(a, int):
-            raise MachineError(f'expecting an integer, not {dump_value(a)}')
-        if not isinstance(b, int):
-            raise MachineError(f'expecting an integer, not {dump_value(b)}')
+        check_int(a)
+        check_int(b)
 
         if op == Op.OP_ADD:
             result = a + b
