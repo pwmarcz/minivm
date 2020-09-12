@@ -60,6 +60,7 @@
   * Run directly
   * Compile and run, disassable
   * Show debugger
+* More complicated example: sum
 * Exercise: calculator (sum, sum of N)
   * add average ((a+b)/2)
   * add average of N
@@ -74,7 +75,7 @@
 
 Compile "Forth-like" expressions like "2 2 + 3 *".
 
-You can use the start code (`start/start.js` / `start/start.py`).
+You can use the start code (`start/compiler.js` / `start/compiler.py`).
 
 ## Theory: tokenizing and parsing
 
@@ -114,8 +115,23 @@ We will need:
 
 ## Parsing
 
-* Usually follows a grammar.
-* Our first grammar will be:
+* Usually start the language with defining a grammar
+* Can use a *parser generator*, or write our own (recursive descent parser)
+* Surprisingly, a lot of engines roll their own
+* Grammar that we want (more or less):
+  ```
+  expression = NUMBER
+             | '(' expression ')'
+             | expression '+' expression
+             | expression '-' expression
+             | expression '*' expression
+             | expression '/' expression
+  ```
+* What are problems with this grammar?
+  * Ambiguous
+  * Left-recursive
+  * Cannot immediately decide which rule to follow
+* Start with this:
   ```
   expression = term (('+' | '-' | '*' | '/') term)+
   term = NUMBER
