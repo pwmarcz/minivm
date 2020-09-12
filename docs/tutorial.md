@@ -41,6 +41,10 @@
 * Simpler model: a virtual machine, operating on bytecode
   * Usually: a stack frame, local variables
   * Show the above example but with WebAssembly
+  * Show Python
+  * [Java bytecode](https://en.wikipedia.org/wiki/Java_bytecode#Example)
+
+* (Maybe also show LLVM IR, to show it's not stack)
 
 ## Stack machines
 
@@ -162,3 +166,8 @@ Introduce statements: variable declaration, assignments
 ## Control structures
 
 Add "if" and "while"
+
+## Where to go from there?
+
+* Crafting Interpreters
+* Zachtronics games!
