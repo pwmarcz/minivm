@@ -341,8 +341,8 @@ The operations are encoded as follows:
 | `LOAD_LOCAL`     | 4A   | `<n:byte>`                        | Push `n`-th local variable to stack                            |
 | `STORE_LOCAL`    | 4B   | `<n:byte>`                        | Take a value from stack and store it in `n`-th local variable  |
 | **Control flow** |      |                                   |                                                                |
-| `JUMP`           | 51   | `<nl:byte>` `<nh:byte>` (signed)  | Jump `n` bytes (+/-) from current instruction                  |
-| `JUMP_IF`        | 52   | `<nl:byte>` `<nh:byte>` (signed)  | Take a value from stack, jump `n` bytes if not false           |
+| `JUMP`           | 50   | `<nl:byte>` `<nh:byte>` (signed)  | Jump `n` bytes (+/-) from current instruction                  |
+| `JUMP_IF`        | 51   | `<nl:byte>` `<nh:byte>` (signed)  | Take a value from stack, jump `n` bytes if not false           |
 | `RET`            | 58   |                                   | Return from function, taking top value from stack              |
 | `CALL`           | 59   | `<name:string> <n:byte>`          | Call function `name`, using `n` values from stack as arguments |
 | `CALL_VOID`      | 5A   | `<name:string> <n:byte>`          | Same as `CALL`, but do not put the result on stack             |
