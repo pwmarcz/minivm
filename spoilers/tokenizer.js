@@ -3,8 +3,6 @@ class Tokenizer {
   constructor(text) {
     this.text = text;
     this.pos = 0;
-
-    this.tokens = [];
   }
 
   current() {
@@ -36,12 +34,14 @@ class Tokenizer {
   }
 
   run() {
+    const tokens = [];
+
     for (;;) {
       this.skipSpaces();
 
       const c = this.current();
       if (c === null) {
-        return;
+        break;
       }
       switch (c) {
         case '#':
@@ -49,34 +49,32 @@ class Tokenizer {
           break;
 
         case '+': case '-': case '*': case '/': case '(': case ')':
-          this.tokens.push({type: c});
+          tokens.push({type: c});
           this.pos++;
           break;
 
         default:
           if (/^\d$/.test(c)) {
             const n = this.handleNumber();
-            this.tokens.push({type: 'NUMBER', value: n});
+            tokens.push({type: 'NUMBER', value: n});
           } else {
             throw `unrecognized: ${c}`;
           }
           break;
       }
     }
+
+    return tokens;
   }
 }
 
-function tokenize(text) {
-  const tokenizer = new Tokenizer(text);
-  tokenizer.run();
-  return tokenizer.tokens;
-}
-
 function test() {
-  console.log(tokenize('2 * 2'));
-  console.log(tokenize('2   *   2'));
-  console.log(tokenize('2\n+\n2'));
-  console.log(tokenize('#comment\n 2 + 2'));
+  console.log(new Tokenizer('2 * 2').run());
+  console.log(new Tokenizer('2   *   2').run());
+  console.log(new Tokenizer('2\n+\n2').run());
+  console.log(new Tokenizer('#comment\n 2 + 2').run());
 }
 
 test();
+
+module.exports = {Tokenizer};

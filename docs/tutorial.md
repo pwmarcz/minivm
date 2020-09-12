@@ -3,6 +3,7 @@
 * Schedule (lunch break?)
 * Workshop plan
 * This is very experimental, so not sure how much we'll manage do
+* Not sure about the starting samples - they might be not useful enough, or *too* useful
 * If it's interesting, we can continue another time
 
 ## What is compiling
@@ -67,11 +68,13 @@
   * Disassemble (or run in debugger), check what would be a good password
   * Try "cracking" the program so that any password works, or it doesn't as for password at all
   * Easy mode: decompile, modify source, compile
-  * Hard mode: use a hex editor!
+  * Hard mode: use a hex editor! (hexedit, ghex, ...)
 
 ## Writing first compiler
 
 Compile "Forth-like" expressions like "2 2 + 3 *".
+
+You can use the start code (`start/start.js` / `start/start.py`).
 
 ## Theory: tokenizing and parsing
 
@@ -88,14 +91,15 @@ Compile "Forth-like" expressions like "2 2 + 3 *".
   * (tokenize) -> tokens
   * (parse, translate, generate code) -> ASM or machine code
 
-* Sometimes, even a simple pass! (]Turbo Pascal was legendary](https://prog21.dadgum.com/47.html))
+* Sometimes, even a simple pass! (see [Turbo Pascal](https://prog21.dadgum.com/47.html))
 
 ## Writing a tokenizer
 
 * Tokenizer (lexer): show example tokens, such as `2 * (a + b + c + d)`
 * Disregard comments (for example, everything from `#` to newline)
 * Disregard whitespace (space, tab, newline)
-* Decide based on at first character
+* Decide based on at first character.
+* Or use regexes!
 
 We will need:
 * integer numbers (type: `NUMBER`, value: `123`)
@@ -113,21 +117,27 @@ We will need:
 * Usually follows a grammar.
 * Our first grammar will be:
   ```
-  program ::= expr
-  expr ::= number
-         | '(' expr ')'
-         | '-' expr
-         | expr '+' expr
-         | expr '-' expr
-         | expr '*' expr
-         | expr '/' expr
+  expression = term (('+' | '-' | '*' | '/') term)+
+  term = NUMBER
   ```
-* Show a deconstruction of a program like `2 * (2 + 2)`
-* Exercise: finish a simple parser (or write own from start)
+
+  (yes, it will not handle correct precedence)
+* Next step: add parentheses:
+  ```
+  term = NUMBER | '(' expression ')'
+  ```
 * At first, it will just print something (indented debugging info)
 * Make it generate code!
 
-## Parsing: precedence
+## Adding precedence
+
+Can be done here, or earlier:
+
+```
+expression = term (('+' | '-') term)+
+term = factor (('*' | '/') factor)+
+factor = NUMBER | '(' expression ')'
+```
 
 ## Variables
 
