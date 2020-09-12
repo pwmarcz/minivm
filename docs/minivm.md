@@ -318,6 +318,7 @@ The operations are encoded as follows:
 | `CONST_TRUE`     | 12   |                                   | Push `true` to stack                                           |
 | `CONST_INT`      | 13   | `<n:byte>` (signed)               | Push an integer to stack (`-0x80 <= n <= 0x7F`)                |
 | `CONST_INT_BIG`  | 14   | `<nl:byte>` `<nh:byte>` (signed)  | Push an integer to stack (`-0x8000 <= n <= 0x7FFF`)            |
+| `CONST_STRING`   | 15   | `<s:string>`                      | Push a string to stack                                         |
 | **Arithmetic**   |      |                                   |                                                                |
 | `OP_NEG`         | 20   |                                   | `-a`                                                           |
 | `OP_ADD`         | 21   |                                   | `a + b`                                                        |
